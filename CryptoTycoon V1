@@ -1,0 +1,129 @@
+import random
+import tkinter as tk
+from tkinter import messagebox
+
+class CryptoTycoon:
+    def __init__(self):
+        self.capital = 1000  # Capital initial du joueur
+        self.crypto_value = 100  # Valeur initiale de la cryptomonnaie
+        self.transaction_fee = 0.05  # Frais de transaction (5%)
+        self.day = 1
+        self.root = tk.Tk()
+        self.root.title("CryptoTycoon")
+
+        # Création de la zone de texte pour saisir la quantité
+        self.entry_var = tk.StringVar()
+        self.entry = tk.Entry(self.root, textvariable=self.entry_var, font=("Arial", 12))
+        self.entry.grid(row=0, column=0, columnspan=6, pady=5, padx=5, sticky="nsew")
+
+        # Création du clavier virtuel
+        self.create_virtual_keyboard()
+
+        # Affichage des informations
+        self.label = tk.Label(self.root, text="Jour 1", font=("Arial", 12))
+        self.label.grid(row=1, column=0, columnspan=6, pady=5, padx=5, sticky="nsew")
+        self.crypto_label = tk.Label(self.root, text=f"Valeur Crypto: {self.crypto_value}", font=("Arial", 12))
+        self.crypto_label.grid(row=2, column=0, columnspan=6, pady=5, padx=5, sticky="nsew")
+        self.capital_label = tk.Label(self.root, text=f"Capital: {self.capital}", font=("Arial", 12))
+        self.capital_label.grid(row=3, column=0, columnspan=6, pady=5, padx=5, sticky="nsew")
+        self.fee_label = tk.Label(self.root, text=f"Frais de transaction: {self.transaction_fee * 100}%", font=("Arial", 12))
+        self.fee_label.grid(row=4, column=0, columnspan=6, pady=5, padx=5, sticky="nsew")
+
+        self.update_labels()
+
+    def update_labels(self):
+        self.label.config(text=f"Jour {self.day}")
+        self.crypto_label.config(text=f"Valeur Crypto: {self.crypto_value}")
+        self.capital_label.config(text=f"Capital: {self.capital}")
+        self.fee_label.config(text=f"Frais de transaction: {self.transaction_fee * 100}%")
+
+    def create_virtual_keyboard(self):
+        buttons = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+            "Effacer", "Acheter", "Vendre"
+        ]
+        row = 5
+        col = 0
+        for button in buttons:
+            tk.Button(self.root, text=button, font=("Arial", 12), command=lambda b=button: self.handle_click(b)).grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+            col += 1
+            if col > 5:
+                col = 0
+                row += 1
+
+    def handle_click(self, button):
+        if button == "Effacer":
+            self.entry_var.set(self.entry_var.get()[:-1])
+        elif button == "Acheter":
+            amount = self.entry_var.get()
+            if amount.isdigit() and int(amount) > 0:
+                self.buy_crypto(int(amount))
+                self.entry_var.set('')
+            else:
+                messagebox.showwarning("Avertissement", "Veuillez entrer un montant valide.")
+        elif button == "Vendre":
+            amount = self.entry_var.get()
+            if amount.isdigit() and int(amount) > 0:
+                self.sell_crypto(int(amount))
+                self.entry_var.set('')
+            else:
+                messagebox.showwarning("Avertissement", "Veuillez entrer un montant valide.")
+        else:
+            self.entry_var.set(self.entry_var.get() + button)
+
+    def buy_crypto(self, amount):
+        transaction_cost = amount * self.crypto_value * self.transaction_fee
+        total_cost = amount * self.crypto_value + transaction_cost
+
+        if total_cost > self.capital:
+            messagebox.showerror("Erreur", "Vous n'avez pas assez d'argent.")
+            return
+
+        self.capital -= total_cost
+        self.crypto_value += random.uniform(-10, 10)  # Variation de prix aléatoire
+        self.day += 1
+
+        # Gestion des événements aléatoires
+        if random.random() < 0.1:  # 10% de chance qu'un événement se produise
+            self.handle_event()
+
+        self.update_labels()
+
+    def sell_crypto(self, amount):
+        if amount > 0 and amount <= self.crypto_amount:
+            crypto_amount = amount
+            total_sale = crypto_amount * self.crypto_value
+            transaction_cost = total_sale * self.transaction_fee
+            total_gain = total_sale - transaction_cost
+
+            self.capital += total_gain
+            self.crypto_value += random.uniform(-10, 10)  # Variation de prix aléatoire
+            self.day += 1
+
+            # Gestion des événements aléatoires
+            if random.random() < 0.1:  # 10% de chance qu'un événement se produise
+                self.handle_event()
+
+            self.update_labels()
+        elif amount <= 0:
+            messagebox.showwarning("Avertissement", "Veuillez entrer un montant valide.")
+        else:
+            messagebox.showerror("Erreur", "Vous n'avez pas assez de cryptomonnaie.")
+
+    def handle_event(self):
+        events = [
+            ("Nouvelles réglementations gouvernementales ! La valeur de la cryptomonnaie diminue.", -10),
+            ("Piratage d'une grande plateforme d'échange ! La valeur de la cryptomonnaie chute brusquement.", -20),
+            ("Adoption massive de la cryptomonnaie par une grande entreprise ! La valeur de la cryptomonnaie augmente.", 20),
+            ("Scandale financier impliquant la cryptomonnaie ! La valeur de la cryptomonnaie diminue temporairement.", -15)
+        ]
+        event, effect = random.choice(events)
+        self.crypto_value += effect
+        messagebox.showinfo("Événement aléatoire", event)
+
+    def play_game(self):
+        self.root.mainloop()
+
+# Créer une instance du jeu et le lancer
+game = CryptoTycoon()
+game.play_game()
